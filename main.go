@@ -6,10 +6,23 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
 	config "github.com/kcartlidge/simples-config"
+)
+
+// Settings ... The loaded ini file contents.
+type Settings struct {
+	mtx               sync.Mutex
+	Port, PollSeconds int
+	Endpoints         map[int]config.Entry
+}
+
+var (
+	settings = Settings{}
+	beat     <-chan time.Time
 )
 
 func main() {
@@ -31,28 +44,31 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	pt := c.GetNumber("SETTINGS", "PORT", 8000)
-	ps := c.GetNumber("SETTINGS", "POLL-SECONDS", 60)
-	fmt.Println("Seconds   :", ps)
-	ep := c.GetSection("ENDPOINTS")
-	fmt.Println("Endpoints :", len(ep))
+	settings.Port = c.GetNumber("SETTINGS", "PORT", 8000)
+	settings.PollSeconds = c.GetNumber("SETTINGS", "POLL-SECONDS", 60)
+	settings.Endpoints = c.GetSection("ENDPOINTS")
+	fmt.Println("Seconds   :", settings.PollSeconds)
+	fmt.Println("Endpoints :", len(settings.Endpoints))
 
 	// Process at the expected frequency.
 	go func() {
 		log.Println("Checking")
-		performChecks(ep)
+		performChecks(settings.Endpoints)
 
-		c := time.Tick(time.Duration(ps) * time.Second)
-		for _ = range c {
+		beat = time.Tick(time.Duration(settings.PollSeconds) * time.Second)
+		for _ = range beat {
 			log.Println("Checking")
-			performChecks(ep)
+			performChecks(settings.Endpoints)
 		}
 	}()
 
 	// Start the API server going.
 	go func() {
-		serve(pt)
+		serve(settings.Port)
 	}()
+
+	// Watch for ini file changes and reload.
+	go watch("ssd.ini", reload)
 
 	// Wait for enter/return.
 	go func() {
@@ -61,7 +77,7 @@ func main() {
 	}()
 
 	fmt.Println()
-	fmt.Println("Running on", pt)
+	fmt.Println("Running on", settings.Port)
 	fmt.Println("Press enter/return to stop")
 	fmt.Println()
 

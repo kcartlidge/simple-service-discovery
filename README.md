@@ -29,9 +29,12 @@ auth-prod =  https://my-auth-2.example.com
 
 ## Status
 
-Fine to use. The services API (```/services```) works as does the health check.
+* Working
+* Services API (```/services```)
+* Health check
+* Endpoint changes automatically loaded without restart
 
-It is missing the monitoring of the ```ssd.ini``` file for changes, so you'll need to manually restart if the file is changed. This will be fixed shortly.
+Note that the *port* and *polling frequency* cannot be changed without restarting, unlike *endpoints* which are dynamically reloaded when the config changes.
 
 ## How to use it
 
