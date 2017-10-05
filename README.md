@@ -1,6 +1,6 @@
 # Simple-Service-Discovery
 
-An easy to use service discovery tool and health check, based upon endpoints defined in an ```ssd.ini``` file:
+An easy to use **service discovery** and **health check** tool, based upon endpoints defined in an ```ssd.ini``` file:
 
 ``` ini
 [SETTINGS]
@@ -24,8 +24,10 @@ auth-prod =  https://my-auth-2.example.com
 ## Features
 
 * No service registration, just update the ```ssd.ini``` file to make changes.
-* Polling system checks the status of the endpoints on a regular basis.
-* Simple JSON responses for valid, invalid, or both in one.
+* Endpoints have names, so you can go from a generic name like 'billing' to an exact endpoint, thus giving service discovery.
+* Multiple endpoints can have the same name, so your app can choose the one with the best health.
+* Polling system checks the status of the endpoints on a regular frequency of your choice.
+* Simple JSON response gives the location and status of all endpoints by name.
 
 ## Status
 
